@@ -105,5 +105,5 @@ Headers:
 ###### Header 6 ######
 
 
-That's all for now. Ripped from [here][1]
-[1]: (https://en.support.wordpress.com/markdown-quick-reference/ "Wordpress Markdown Quick Refrence")
+That's all for now. Ripped from [here][3]
+[3]: (https://en.support.wordpress.com/markdown-quick-reference/ "Wordpress Markdown Quick Refrence")
