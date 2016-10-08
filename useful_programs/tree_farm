@@ -1,0 +1,109 @@
+os.loadAPI("starNAV")
+os.loadAPI("csvParser")
+os.loadAPI("lumberjack")
+SAPLINGSLOT=1
+FUELSLOT=2
+BONEMEALSLOT=3
+WOODSLOT=16
+
+function file_exists(file)
+  local f = io.open(file, "rb")
+  if f then f:close() end
+  return f ~=nil
+end
+
+function lines_from(file)
+   if not file_exists(file) then return {} end
+   lines = {}
+   for line in io.lines(file) do
+     lines[#lines+1] = line
+   end
+   return lines
+end
+
+function checkFuel()
+  while turtle.getFuelLevel() <= 100 do
+    turtle.select(FUELSLOT)
+    turtle.refuel(1)
+  end
+end
+
+function detectBlock(id)
+  count = 0
+  while count < 4 do
+    det,blk = turtle.inspect()
+    if not det or blk["name"] ~= id then
+      turtle.turnLeft()      
+    end
+    count = count + 1
+  end
+end
+
+function makeCoal(x,y,z)
+  starNAV.goto(x,y,z)
+  detectBlock("minecraft:furnace")
+end
+
+function depositWood(x,y,z,h)
+  checkFuel()
+  starNAV.goto(x,y,z,h)
+  for i =16,1,-1 do
+    turtle.select(i)
+    blk = turtle.getItemDetail()
+    if blk then    
+      if blk["name"] == "minecraft:log" then
+        turtle.drop()
+      end
+    end
+  end
+end
+
+--local file = "test_farm"
+local file = "tree_farm_1_waypoints"
+--local file = "tree_farm_test_waypoints"
+local lines = lines_from(file)
+
+for i,v in ipairs(lines) do
+  local l = csvParser.ParseCSVLine(v)
+  print(l[1],l[2],l[3],l[4])
+  lumberjack.failsafe()
+  checkFuel()
+  _x = tonumber(l[1])
+  _y = tonumber(l[2])
+  _z = tonumber(l[3])
+  _h = tonumber(l[4])
+  starNAV.goto(_x,_y,_z,_h)
+  print("Current Pos",gps.locate(2))
+  det, blk = turtle.inspect()
+  if not det then
+    print("Nothing Found")
+  elseif blk["name"] == "minecraft:sapling" then
+    print("Found Sapling")
+    --X,Y,Z = gps.locate(2)
+    --starNAV.goto(X-1,Y,Z)
+    --print("blah",gps.locate(2))
+  elseif blk["name"] == "minecraft:log" then
+    print("Chopping Tree")
+    height=0
+    while turtle.detect() do
+      lumberjack.chop()
+      height = height +1
+      checkFuel()
+    end
+    while height > 0 do
+      turtle.down()
+      height = height -1
+      checkFuel()
+    end
+    turtle.select(SAPLINGSLOT)
+    turtle.place()
+    --X,Y,Z = gps.locate(2)
+    --starNAV.goto(X+1,Y,Z)
+  else
+    print("No tree found")
+  end
+  checkFuel()
+end
+depositWood(-128,68,235,2)
+turtle.up()
+--makeCoal(-144,68,235)
