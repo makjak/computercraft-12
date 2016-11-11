@@ -1,0 +1,5 @@
+if fs.exists("custom") then
+	shell.run("custom","host",-58,255,19,nil)
+else
+	shell.run("gps","host",-58,255,19)
+end

@@ -1,0 +1,625 @@
+print " "
+print "aTunnel 2.0.0 (at)" -- short for "Andre's Tunneler"
+
+-- turtlescripts.com aTunnel for minecraft turtle bots from computer craft mod for minecraft.
+--
+-- Written by Andre L Noel
+-- Creative Commons Attribution 3.0 Unported License.
+-- http://creativecommons.org/licenses/by/3.0/deed.en_US
+-- You may use/distribute/copy/modify/create new works with this as long as credit is given where it is due.
+-- 
+-- 2.0.0 front wall option and ability to turn off extra actions for anti-lava/water and turn off torch placement
+-- 1.1.2 parameters for left and right walls to help handle underwater mining. > at left right top back 2 5 8
+-- 1.1.1 This fixed the bug for the water/lava lapping and not moving problem.
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+local tArgs = { ... }
+local argOffset = 0
+
+local leftWallFlag = 0
+local rightWallFlag = 0
+local botFloorFlag = 2     -- 2=one wide floor, 1=full floor three wide, 0=no floor(usually not wise)
+local topRoofFlag = 1      -- defaults to creating a roof
+local backWallFlag = 0
+local frontWallFlag = 0    -- creates a front wall with a 2 tall and 1 wide opening
+local antiLiquidFlag = 1   -- creates (or not with "-water") extra anti water/lava/liquid source actions.
+local torchesFlag = 1
+
+local chosenOptions = ""
+local howfar = tonumber(tArgs[1 + argOffset]) 
+while ( ( not ( tArgs[1 + argOffset] == nil ) ) and ( ( howfar == nil ) or ( howfar == 0 ) ) ) do -- 1st arg is not nil and not a nonzero number so its a string.
+    aword = 0
+	p = tArgs[1 + argOffset]
+
+	if ( ( tArgs[1 + argOffset] == "left" ) 
+		or ( tArgs[1 + argOffset] == "leftwall" ) 
+		or ( tArgs[1 + argOffset] == "wallleft" ) ) then
+		leftWallFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+
+	if ( ( tArgs[1 + argOffset] == "right" ) 
+		or ( tArgs[1 + argOffset] == "rightwall" ) 
+		or ( tArgs[1 + argOffset] == "wallright" ) ) then 
+		rightWallFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "floor" ) 
+		or ( tArgs[1 + argOffset] == "bottom" )
+		or ( tArgs[1 + argOffset] == "bot" ) ) then 
+		botFloorFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "-floor" ) 
+		or ( tArgs[1 + argOffset] == "-bottom" ) 
+		or ( tArgs[1 + argOffset] == "-bot" ) ) then
+		botFloorFlag = 0
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "top" ) 
+		or ( tArgs[1 + argOffset] == "ceiling" ) 
+		or ( tArgs[1 + argOffset] == "roof" ) ) then
+		topRoofFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "-top" ) 
+		or ( tArgs[1 + argOffset] == "-ceiling" ) 
+		or ( tArgs[1 + argOffset] == "-roof" ) ) then
+		topRoofFlag = 0
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "end" ) 
+		or ( tArgs[1 + argOffset] == "theend" ) 
+		or ( tArgs[1 + argOffset] == "back" ) 
+		or ( tArgs[1 + argOffset] == "theback" )
+		or ( tArgs[1 + argOffset] == "thebackend" ) 
+		or ( tArgs[1 + argOffset] == "backend" )
+		or ( tArgs[1 + argOffset] == "backwall" ) 
+		or ( tArgs[1 + argOffset] == "thebackwall" ) 
+		or ( tArgs[1 + argOffset] == "wallback" ) 
+		or ( tArgs[1 + argOffset] == "walltheback" ) ) then
+		backWallFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "front" ) 
+		or ( tArgs[1 + argOffset] == "thefront" ) 
+		or ( tArgs[1 + argOffset] == "thefrontwall" ) 
+		or ( tArgs[1 + argOffset] == "frontwall" ) 
+		or ( tArgs[1 + argOffset] == "face" ) ) then
+		frontWallFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "all" ) 
+		or ( tArgs[1 + argOffset] == "allsides" ) 
+		or ( tArgs[1 + argOffset] == "everyside" ) 
+		or ( tArgs[1 + argOffset] == "full" ) 
+		or ( tArgs[1 + argOffset] == "room" ) 
+		or ( tArgs[1 + argOffset] == "every" ) ) then
+		backWallFlag = 1
+		frontWallFlag = 1
+		leftWallFlag = 1
+		rightWallFlag = 1
+		botFloorFlag = 1
+		topRoofFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "-all" ) 
+		or ( tArgs[1 + argOffset] == "-allsides" ) 
+		or ( tArgs[1 + argOffset] == "-everyside" ) 
+		or ( tArgs[1 + argOffset] == "-full" ) 
+		or ( tArgs[1 + argOffset] == "-room" ) 
+		or ( tArgs[1 + argOffset] == "-every" ) ) then
+		backWallFlag = 0
+		frontWallFlag = 0
+		leftWallFlag = 0
+		rightWallFlag = 0
+		botFloorFlag = 0
+		topRoofFlag = 0
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "water" ) 
+		or ( tArgs[1 + argOffset] == "lava" ) 
+		or ( tArgs[1 + argOffset] == "oil" ) 
+		or ( tArgs[1 + argOffset] == "antiwater" ) 
+		or ( tArgs[1 + argOffset] == "antilava" ) 
+		or ( tArgs[1 + argOffset] == "antioil" ) 
+		or ( tArgs[1 + argOffset] == "source" ) 
+		or ( tArgs[1 + argOffset] == "sourceblock" ) 
+		or ( tArgs[1 + argOffset] == "sourceblocks" ) 
+		or ( tArgs[1 + argOffset] == "antisource" ) 
+		or ( tArgs[1 + argOffset] == "antisourceblock" ) 
+		or ( tArgs[1 + argOffset] == "antisourceblocks" ) 
+		or ( tArgs[1 + argOffset] == "antiliquid" ) 
+		or ( tArgs[1 + argOffset] == "liquid" ) ) then
+		antiLiquidFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if ( ( tArgs[1 + argOffset] == "-water" ) 
+		or ( tArgs[1 + argOffset] == "-lava" ) 
+		or ( tArgs[1 + argOffset] == "-oil" ) 
+		or ( tArgs[1 + argOffset] == "-antiwater" ) 
+		or ( tArgs[1 + argOffset] == "-antilava" ) 
+		or ( tArgs[1 + argOffset] == "-antioil" ) 
+		or ( tArgs[1 + argOffset] == "-source" ) 
+		or ( tArgs[1 + argOffset] == "-sourceblock" ) 
+		or ( tArgs[1 + argOffset] == "-sourceblocks" ) 
+		or ( tArgs[1 + argOffset] == "-antisource" ) 
+		or ( tArgs[1 + argOffset] == "-antisourceblock" ) 
+		or ( tArgs[1 + argOffset] == "-antisourceblocks" ) 
+		or ( tArgs[1 + argOffset] == "-antiliquid" ) 
+		or ( tArgs[1 + argOffset] == "-liquid" ) ) then
+		antiLiquidFlag = 0
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+
+	if ( ( tArgs[1 + argOffset] == "torches" ) 
+		or ( tArgs[1 + argOffset] == "torch" ) 
+		or ( tArgs[1 + argOffset] == "lights" ) 
+		or ( tArgs[1 + argOffset] == "light" ) ) then
+		torchesFlag = 1
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+
+	if ( ( tArgs[1 + argOffset] == "-torches" ) 
+		or ( tArgs[1 + argOffset] == "-torch" ) 
+		or ( tArgs[1 + argOffset] == "-lights" ) 
+		or ( tArgs[1 + argOffset] == "-light" ) ) then
+		torchesFlag = 0
+		chosenOptions = chosenOptions .. tArgs[1 + argOffset] .. " "
+		argOffset = argOffset + 1
+		aword = 1
+	end
+
+	if ( ( tArgs[1 + argOffset] == "wall" ) -- words to ignore
+		or ( tArgs[1 + argOffset] == "side" ) 
+		or ( tArgs[1 + argOffset] == "walls" ) 
+		or ( tArgs[1 + argOffset] == "sides" )
+		or ( tArgs[1 + argOffset] == "block" )
+		or ( tArgs[1 + argOffset] == "blocks" )
+		or ( tArgs[1 + argOffset] == "and" )
+		or ( tArgs[1 + argOffset] == "the" ) ) then
+		-- ignore it
+		argOffset = argOffset + 1
+		aword = 1
+	end
+	
+	if aword == 0 then -- not a recognized word
+		print("Error: option '" .. tArgs[1 + argOffset] .. "'  is not recognized.")
+		print("Available options are:")
+		print("left right back front top botton all -top -bottom -torches -antilava")
+		print("example: > at top right end 64 6 8")
+		error(" ",0)
+	end
+	howfar = tonumber(tArgs[1 + argOffset])
+end 
+
+local howfar = tonumber(tArgs[1 + argOffset])
+if howfar == nil then 
+  print " "
+  print "at [options] <forward> [<height>] [<torches-every>]"
+  print "wall options: left right back front top botton all -top -bottom"
+  print "efficency options: -torches -antilava"
+  print "Place cobble or filler in slot 1"
+  print "Place torches in slot 16"
+  print "Place fuel in any other slot"
+  print "example: > at top right end 64 5 8"
+  error(" ",0)
+end
+
+local howtall = tonumber(tArgs[2 + argOffset])
+if ( howtall == nil ) then howtall=3 end
+if ( howtall < 0 ) then -- negative for no ceiling fill
+  howtall = howtall * -1
+  topRoofFlag = 0
+end
+if ( howtall < 2 ) then howtall=3 end
+
+local torchevery = tonumber(tArgs[3 + argOffset])
+if ( torchevery == nil ) then torchevery=8 end
+if ( torchevery < 1 ) then torchevery=8 end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+function invenCheck(selection)
+  -- check torches
+  turtle.select(16)
+  while ( turtle.getItemCount(16) < 1 ) do
+    print " "
+    print "More torches are needed."
+    print "Please add torches to slot 16"
+    print "Press Enter when done."
+    x = read();
+  end
+  -- check filler
+  turtle.select(1)
+  while turtle.getItemCount(1) < 1 do
+    print " "
+    print "Cobblestone or other filler blocks are needed."
+    print "Please add them to slot 1"
+    print "Press Enter when done."
+    x = read()
+  end
+  -- check inventory space
+  freespaces = false
+  while not freespaces do
+    for i=2,15 do
+        turtle.select(i)
+      if turtle.getItemCount(i) < 1 then
+        freespaces = true
+        break
+      end
+    end
+    if not freespaces then
+      print " "
+      print "Turtle inventory has no free slots."
+      print "Please remove items except for"
+      print "filler blocks in slot 1 and"
+      print "torches in slot 16 and"
+      print "any needed fuel such as coal."
+      turtle.select(2)
+      print "Press Enter when done."
+      x = read()
+    end
+    if selection == nil then
+      turtle.select(1)
+    else
+      turtle.select(selection)
+    end
+  end
+  
+end -- invenCheck
+
+function fuelup()
+  result = true
+  while turtle.getFuelLevel() < 1 do
+    result = false
+    for i=2,15 do
+      turtle.select(i)
+      if turtle.refuel(1) then
+        result = true
+        break
+      end
+    end
+    if not result then
+      print " "
+      print "Please add fuel such as coal."
+      print "Press Enter when done."
+      x = read()
+    end
+  end
+end
+
+function digf() -- dig forward
+  invenCheck()
+  tried = 0
+  while turtle.dig() do
+    turtle.suck()
+    turtle.suckUp()
+    turtle.suckDown()
+    if tried > 0 then
+      fuelup()
+      -- test if it is just liquid by moving into then out of the space once
+      if turtle.forward() then
+        fuelup()
+        while not turtle.back() do 
+          print " "
+          print "Please unblock behind me so I can backup."
+          print "Press Enter when done."
+          x = read()
+        end
+        return  
+      end
+    end
+    tried = 1
+    sleep(0.3)
+  end
+end
+
+function digu() -- dig up
+  invenCheck()
+  tried = 0
+  while turtle.digUp() do
+    turtle.suckUp()
+    turtle.suck()
+    turtle.suckDown()
+    if tried > 0 then
+      fuelup()
+      -- test if it is just liquid by moving into then out of the space once
+      if turtle.up() then
+        fuelup()
+        while not turtle.down() do 
+          print " "
+          print "Please unblock under me so I can go down."
+          print "Press Enter when done."
+          x = read()
+        end
+        return  
+      end
+    end
+    tried = 1
+    sleep(0.3)
+  end
+end
+
+function digd() -- dig down
+  invenCheck()
+  tried = 0
+  while turtle.digDown() do
+    turtle.suckDown()
+    turtle.suck()
+    turtle.suckUp()
+    if tried > 0 then
+      fuelup()
+      -- test if it is just liquid by moving into then out of the space once
+      if turtle.down() then
+        fuelup()
+        while not turtle.up() do 
+          print " "
+          print "Please unblock above me so I can go up."
+          print "Press Enter when done."
+          x = read()
+        end
+        return  
+      end
+    end
+    tried = 1
+    sleep(0.3)
+  end
+end
+
+function tab() -- turn around backwards
+  turtle.turnLeft(); turtle.turnLeft();
+end
+
+function tfw() -- turtle move forwards
+  fuelup()
+  while not turtle.forward() do 
+    digf()
+    turtle.attack()
+    turtle.attack()
+  end
+end
+
+function tbw() -- turtle move backwards
+  fuelup()
+  while not turtle.back() do
+    tab()
+    digf()
+    turtle.attack()
+    turtle.attack()
+    tab()
+  end
+end
+
+function tup() -- turtle move up
+  fuelup()
+  while not turtle.up() do 
+    digu()
+    turtle.attackUp()
+    turtle.attackUp()
+  end
+end
+
+function tdn() -- turtle move down
+  fuelup()
+  while not turtle.down() do 
+    digd()
+    turtle.attackDown()
+    turtle.attackDown()
+  end
+end
+
+function tplace(selection) -- turtle place forward
+  invenCheck(selection)
+  turtle.place()
+end
+
+function tplaceu(selection) -- turtle place up
+  invenCheck(selection)
+  turtle.placeUp()
+end
+
+function tplaced(selection) -- turtle place down
+  invenCheck(selection)
+  turtle.placeDown()
+end
+
+function tplacel(selection) -- turtle place left
+  invenCheck(selection)
+  turtle.turnLeft()
+  turtle.place()
+  turtle.turnRight()
+end
+
+function tplacer(selection) -- turtle place right
+  invenCheck(selection)
+  turtle.turnRight()
+  turtle.place()
+  turtle.turnLeft()
+end
+
+function tplaceb(selection) -- turtle place back
+  invenCheck(selection)
+  tab()
+  turtle.place()
+  tab()
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+print " "
+print("Tunnel size : 3 wide, " .. howtall .. " tall, " .. howfar .. " long")
+print("Torches every " .. torchevery)
+if not(chosenOptions == "") then print("Options: " .. chosenOptions ) end
+print " "
+sleep(4)
+
+torchspaces = torchevery -- from here to the last torch placed
+print "Now working on : "
+for fwsteps=1,howfar do -- main loop
+  print( fwsteps .. " of " .. howfar .. " ...")
+
+  torchspaces = torchspaces + 1
+  if (torchesFlag == 1) and (torchspaces > (torchevery - 1)) then
+    tplaceb(16)
+    torchspaces = 0
+  end
+
+  tfw() -- facing forward
+  turtle.select(1) -- cobble or filler block
+  if ( botFloorFlag > 0 ) then tplaced() end
+
+  -- go up
+  for tall=2,howtall do
+    if (( fwsteps == howfar ) and ( backWallFlag == 1 )) then tplace() end
+    if (( fwsteps == 1 ) and ( frontWallFlag == 1 ) and ( tall > 3)) then tplaceb() end
+    tup()
+  end
+  if (( fwsteps == howfar ) and ( backWallFlag == 1 )) then tplace() end
+  if (( fwsteps == 1 ) and ( frontWallFlag == 1 ) and ( howtall > 2 )) then tplaceb() end
+
+  -- top of mining path (just below the roof/ceiling)
+  if topRoofFlag == 1 then tplaceu() end
+  turtle.turnLeft() -- facing left
+  if ( topRoofFlag == 1 ) 
+    or ( leftWallFlag == 1 ) 
+    or (( fwsteps == howfar ) and ( backWallFlag == 1 )) 
+    or (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then 
+    tfw()
+  else 
+    if antiLiquidFlag == 1 then tplace() end -- anti lava and water
+    digf() 
+  end
+  if topRoofFlag == 1 then tplaceu() end
+  if leftWallFlag == 1 then tplace() end
+  if (( fwsteps == howfar ) and ( backWallFlag == 1 )) then tplacer() end
+  if (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then tplacel() end
+  if ( topRoofFlag == 1 ) 
+    or ( leftWallFlag == 1 ) 
+    or (( fwsteps == howfar ) and ( backWallFlag == 1 )) 
+    or (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then 
+    tbw() -- still facing left
+  end
+  
+  tab() -- facing right
+  if ( topRoofFlag == 1 ) 
+    or ( rightWallFlag == 1 ) 
+    or (( fwsteps == howfar ) and ( backWallFlag == 1 )) 
+    or (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then 
+    tfw()
+  else 
+    if antiLiquidFlag == 1 then tplace() end -- anti lava and water
+    digf() 
+  end
+  if topRoofFlag == 1 then tplaceu() end
+  if rightWallFlag == 1 then tplace() end
+  if (( fwsteps == howfar ) and ( backWallFlag == 1 )) then tplacel() end
+  if (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then tplacer() end
+  if ( topRoofFlag == 1 ) 
+    or ( rightWallFlag == 1 ) 
+    or (( fwsteps == howfar ) and ( backWallFlag == 1 )) 
+    or (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then 
+    tbw()
+  end
+  -- facing right
+
+  for tall=2,howtall do
+    tdn()
+    if ( rightWallFlag == 1 ) 
+      or (( fwsteps == howfar ) and ( backWallFlag == 1 )) 
+      or (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then 
+      tfw()
+      if ( rightWallFlag == 1 ) then tplace() end
+      if (( fwsteps == howfar ) and ( backWallFlag == 1 )) then tplacel() end
+      if (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then tplacer() end
+      tbw()
+    else
+      if antiLiquidFlag == 1 then tplace() end -- anti lava and water
+      digf()
+    end
+    tab() -- facing left
+    if ( leftWallFlag == 1 ) 
+      or (( fwsteps == howfar ) and ( backWallFlag == 1 )) 
+      or (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then 
+      tfw()
+      if leftWallFlag == 1 then tplace() end
+      if (( fwsteps == howfar ) and ( backWallFlag == 1 )) then tplacer() end
+      if (( fwsteps == 1 ) and ( frontWallFlag == 1 )) then tplacel() end
+      tbw()
+    else
+      if antiLiquidFlag == 1 then tplace() end -- anti lava and water
+      digf()
+    end
+    tab() -- facing right
+  end
+  -- facing right
+
+  -- redundant check for gravel
+  digu()
+  digf()
+  tab() -- facing left
+  digf()
+  
+  -- floor
+  if ( botFloorFlag == 2 ) then -- single wide floor (default)
+    tplaced()
+    turtle.turnRight() -- facing forward again
+  end
+  if ( botFloorFlag == 1 ) then -- full three wide floor
+    tplaced()
+    tfw()
+    tplaced()
+    tab() -- face right
+    tfw()
+    tfw()
+    tplaced()
+    tbw()
+    turtle.turnLeft() -- facing forward again
+  end
+  if ( botFloorFlag == 0 ) then -- no floor
+    turtle.turnRight() -- facing forward again
+  end
+
+end -- main loop
+print "Turtle done!            "
+
+print "Going back."
+tup()
+for bwsteps=1,howfar do
+  tbw() 
+end
+tdn()
+print "Im back!"

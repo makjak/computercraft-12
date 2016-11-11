@@ -1,0 +1,63 @@
+function failsafe()
+  local USE_BONEMEAL = false
+  local slot1 = turtle.getItemDetail(1)
+  if slot1 == nil or slot1["name"] ~= "minecraft:sapling" then
+        print("No more Saplings")
+        print("Press any button to shutdown computer...")
+        os.pullEvent("key")
+        stop()
+  end
+  if USE_BONEMEAL then
+    local slot3 = turtle.getItemDetail(3)
+    if slot1 == nil or slot3["name"] ~= "minecraft:dye" then
+          print("No more Bone Meal")
+          print("Press any button to shutdown computer...")
+          os.pullEvent("key")
+          stop()
+    end
+  end
+  local slot2 = turtle.getItemDetail(2)
+  if slot2 == nil or slot2["name"] ~= "minecraft:coal" then
+        print("No more fuel")
+        print("Press any button to shutdown computer...")
+        os.pullEvent("key")
+        stop()
+  end
+end
+function stop()
+  os.shutdown()
+end
+function chop() --Creates the function chop() for the wood chopping algorithm.
+  turtle.dig()
+  turtle.digUp()
+  turtle.up()
+end
+
+function findWood()
+  count = 0
+  while count < 4 do
+    det,blk = turtle.inspect()
+    if not det or blk["name"] ~= "minecraft:log" then
+      turtle.turnLeft()
+    else
+      return true
+    end
+    count = count + 1
+  end
+  return false
+end
+
+function findSapling()
+  count = 0
+  while count < 4 do  
+    det,blk = turtle.inspect()
+    if not det or blk["name"] ~= "minecraft:sapling" then
+      turtle.turnLeft()
+    else
+      return true
+    end
+    count = count + 1    
+  end
+  return false
+end
+

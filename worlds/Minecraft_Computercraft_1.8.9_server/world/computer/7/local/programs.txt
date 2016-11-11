@@ -1,0 +1,15 @@
+# install another computercraft client
+pastebin get w1RtfqFd market
+
+# for aTunnel
+market get gjdhav at y
+
+# for starnav
+pastebin run rNZx09j4
+
+pastebin get VTZ6CqWY turtleArchitectV2
+pastebin get ieUJ9bfb tControl
+pastebin get QeuSu0XU roomDigger
+pastebin get PRmpn1rj clearCube
+pastebin get qLthLak5 gps-deploy
+pastebin get vyAZc6tJ luaide

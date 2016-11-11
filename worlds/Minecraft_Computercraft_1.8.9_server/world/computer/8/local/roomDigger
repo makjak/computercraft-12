@@ -1,0 +1,61 @@
+local tArgs = { ... }
+-- check number of arguments
+if #tArgs < 3 or #tArgs > 4 then
+error("Usage: room <depth> <height> <width>")
+end
+
+depth = tonumber(tArgs[1])
+height = tonumber(tArgs[2])
+width = tonumber(tArgs[3])
+
+print("Digging Room D"..tArgs[1].."xH"..tArgs[2].."xW"..tArgs[3]);
+-- move forward to create room
+turtle.dig()
+turtle.forward()
+-- adjust depth for the step
+depth = depth - 1
+-- create room
+for widthTemp = 1, width do
+for heightTemp = 1, height do
+for depthTemp = 1, depth do
+-- dig straight forward
+while turtle.detect() do
+turtle.dig()
+os.sleep(1) -- needed to work with gravel
+end
+turtle.forward()
+                end
+                -- line complete, move to next line
+                if heightTemp<height then
+while turtle.detectUp() do
+turtle.digUp()
+end
+                        turtle.up()
+                        turtle.turnLeft()
+                        turtle.turnLeft()
+end
+end
+        -- slice complete, return to start
+        -- move back on odd heights, otherwise we are already back
+        if height % 2 == 1 then
+                turtle.turnLeft()
+                turtle.turnLeft()
+                for depthTemp=1, depth do
+                        turtle.forward()
+            os.sleep(1)
+                end
+        end
+        -- move down
+        for heightTemp=0, height-1 do
+                turtle.down()
+end
+        -- next slice
+        if widthTemp<width then
+                turtle.turnLeft()
+while turtle.detect() do
+turtle.dig()
+end
+                turtle.forward()
+                turtle.turnLeft()
+        end
+end

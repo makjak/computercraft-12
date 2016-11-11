@@ -1,0 +1,44 @@
+[21:45:04] [Server thread/INFO]: Starting minecraft server version 1.8.9
+[21:45:04] [Server console handler/ERROR]: Exception handling console input
+java.io.IOException: The handle is invalid
+	at java.io.FileInputStream.readBytes(Native Method) ~[?:1.8.0_25]
+	at java.io.FileInputStream.read(Unknown Source) ~[?:1.8.0_25]
+	at java.io.BufferedInputStream.read1(Unknown Source) ~[?:1.8.0_25]
+	at java.io.BufferedInputStream.read(Unknown Source) ~[?:1.8.0_25]
+	at sun.nio.cs.StreamDecoder.readBytes(Unknown Source) ~[?:1.8.0_25]
+	at sun.nio.cs.StreamDecoder.implRead(Unknown Source) ~[?:1.8.0_25]
+	at sun.nio.cs.StreamDecoder.read(Unknown Source) ~[?:1.8.0_25]
+	at java.io.InputStreamReader.read(Unknown Source) ~[?:1.8.0_25]
+	at java.io.BufferedReader.fill(Unknown Source) ~[?:1.8.0_25]
+	at java.io.BufferedReader.readLine(Unknown Source) ~[?:1.8.0_25]
+	at java.io.BufferedReader.readLine(Unknown Source) ~[?:1.8.0_25]
+	at net.minecraft.server.dedicated.DedicatedServer$2.run(DedicatedServer.java:92) [ko$2.class:?]
+[21:45:10] [Server thread/INFO]: Loading properties
+[21:45:10] [Server thread/INFO]: Default game type: SURVIVAL
+[21:45:10] [Server thread/INFO]: Generating keypair
+[21:45:10] [Server thread/INFO]: Starting Minecraft server on *:25565
+[21:45:10] [Server thread/INFO]: Using default channel type
+[21:45:12] [Server thread/INFO]: Preparing level "world"
+[21:45:13] [Server thread/INFO]: Preparing start region for level 0
+[21:45:14] [Server thread/INFO]: Preparing spawn area: 48%
+[21:45:14] [Server thread/INFO]: Done (2.076s)! For help, type "help" or "?"
+[21:45:45] [User Authenticator #1/INFO]: UUID of player Drakkhenkaiser is 204eaa1f-d3f4-427a-86eb-db69c0eb7d30
+[21:45:46] [Server thread/INFO]: Drakkhenkaiser[/127.0.0.1:50634] logged in with entity id 211 at (-56.32898816087396, 43.0, -3.776231392814232)
+[21:45:46] [Server thread/INFO]: Drakkhenkaiser joined the game
+[21:50:46] [Server thread/INFO]: Opped Drakkhenkaiser
+[21:51:11] [Server thread/INFO]: [Drakkhenkaiser: Teleported Drakkhenkaiser to -59.5, 210.0, -69.5]
+[21:51:19] [Server thread/INFO]: [Drakkhenkaiser: Set own game mode to Creative Mode]
+[21:51:51] [Server thread/INFO]: [Drakkhenkaiser: Set the time to 1000]
+[21:53:06] [Server thread/INFO]: [Drakkhenkaiser: Teleported Drakkhenkaiser to -55.5, 43.0, -14.5]
+[21:53:43] [Server thread/INFO]: [Drakkhenkaiser: Teleported Drakkhenkaiser to -55.5, 43.0, -17.5]
+[21:54:06] [Server thread/INFO]: [Drakkhenkaiser: Teleported Drakkhenkaiser to -52.5, 44.0, -17.5]
+[21:54:13] [Server thread/INFO]: [Drakkhenkaiser: Teleported Drakkhenkaiser to -59.5, 210.0, -69.5]
+[21:56:39] [Server thread/INFO]: [Drakkhenkaiser: Set own game mode to Survival Mode]
+[22:10:47] [Server thread/INFO]: Drakkhenkaiser lost connection: TextComponent{text='Disconnected', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}
+[22:10:47] [Server thread/INFO]: Drakkhenkaiser left the game
+[22:10:50] [Server thread/INFO]: Stopping server
+[22:10:50] [Server thread/INFO]: Saving players
+[22:10:50] [Server thread/INFO]: Saving worlds
+[22:10:50] [Server thread/INFO]: Saving chunks for level 'world'/Overworld
+[22:10:50] [Server thread/INFO]: Saving chunks for level 'world'/Nether
+[22:10:50] [Server thread/INFO]: Saving chunks for level 'world'/The End

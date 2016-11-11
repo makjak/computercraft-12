@@ -1,0 +1,127 @@
+if not term.isColor() then
+  error("Turtle Architect is incompatible with regular "..(turtle and "turtles" or "computers").."!",0)
+end
+local tArgs = {...}
+local minification = tArgs[2] ~= "-t" --trims all indentation from the files to reduce the file size by roughly 25%
+local folder = tArgs[1] or ""
+local tContents = {}
+local getContents
+local tSha = {}
+local tIgnore = { --files to ignore
+  ["README.md"] = true
+}
+
+local prevLines
+local termX,termY = term.getSize()
+local midY = math.floor(termY/2)
+local print = function(text)
+  local tLines = {}
+  while #text > 0 do  --splits text into a table containing each line
+    local line = text:sub(1,termX)
+    local newLine = string.find(line.."","\n") --check for new line character
+    if newLine then
+      line = line:sub(1,newLine-1)
+      text = text:sub(#line+2,#text)
+    elseif #line == termX then
+      local endSpace = line:find"%s$" or line:find"%s%S-$" or termX
+      line = line:sub(1,endSpace)
+      text = text:sub(#line+1)
+    else
+      text = ""
+    end
+    line = string.rep(" ",math.max(math.floor((termX-#line)/2),0))..line
+    line = line..string.rep(" ",math.max(termX-#line,0))
+    tLines[#tLines+1] = line
+  end
+  if prevLines and #prevLines > #tLines then
+    for i = 1,#prevLines do
+      if not tLines[i] then
+        term.setCursorPos(1,midY-math.floor(#prevLines/2)+i)
+        term.clearLine()
+      end
+    end
+  end
+  for i,line in ipairs(tLines) do
+    term.setCursorPos(1,midY-math.floor((#tLines/2))+i)
+    term.write(line)
+  end
+  prevLines = tLines
+end
+
+getContents = function(path)
+  path = path or ""
+  print("Scanning Github repo\n"..path.."\nfor files...")
+  local web = http.get("https://api.github.com/repos/CometWolf/TurtleArchitectV2/contents"..path)
+  assert(web,(path ~= "" and "Error: Failed to get contents of "..path) or "Error: Github download limit exceeded")
+  local sContents = web.readAll()
+  web.close()
+  local _s,remainder = sContents:find'"name":"'
+  local name = sContents:match'"name":"(.-)"'
+  while name do
+    if tIgnore[name] then
+      sContents = sContents:sub(remainder)..""
+    else
+      sContents = sContents:sub(remainder)..""
+      local url = sContents:match'html_url":"(.-)"'
+      assert(url,"Error: Failed to get the url of "..path.."/"..name)
+      url = url:gsub("https://","https://raw.")
+      url = url:gsub("blob/","")
+      local fileName = folder..path.."/"..name
+      if sContents:match'"type":"(.-)"' == "file" then
+        tContents[fileName] = url
+        tSha[fileName] = sContents:match'"sha":"(.-)"'
+      else
+        if not fs.exists(fileName) then
+          fs.makeDir(fileName)
+        end
+        getContents(path.."/"..name)
+      end
+    end
+    _s,remainder = sContents:find'"name":"'
+    name = sContents:match'"name":"(.-)"'
+  end
+end
+local createPath
+term.setTextColor(colors.white)
+term.setBackgroundColor(colors.black)
+term.clear()
+getContents()
+for file,url in pairs(tContents) do
+  if not file:match"README.md" then
+    local saveFile = fs.open(file:match"arc.Lua" and file:sub(1,#file-4) or file,"w")
+    print("Downloading\n"..url)
+    local webFile
+    while not webFile do
+      webFile = http.get(url)
+      if not webFile then
+        print("Download failed. Retry? (Y/N)")
+        while true do
+          local _e,key = os.pullEvent"key"
+          if key == 21 then --Y
+            print"Retrying..."
+            break
+          elseif key == 49 then --N
+            print"Installation canceled"
+            saveFile.close()
+            return
+          end
+        end
+      end
+    end
+    if file:match"TAFiles/Settings.Lua" then --settings file can't be minified
+      saveFile.write(webFile.readAll())
+    else
+      local line = webFile.readLine()
+      while line do
+        saveFile.write((minification and (line:match"(%S.*)$" or "") or line).."\n")
+        line = webFile.readLine()
+      end
+    end
+    saveFile.close()
+    webFile.close()
+  end
+end
+local file = fs.open(folder.."/".."TAFiles/gitSha","w")
+file.write(textutils.serialize(tSha))
+file.close()
+print("Sucessfully installed Turtle Architect V2\nType "..(folder ~= "" and folder ~= "/" and folder.."/" or "").."arc to run it.")

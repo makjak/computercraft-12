@@ -1,0 +1,17 @@
+if not starNav then
+	if not os.loadAPI("starNav") then
+		error("could not load starNav API")
+	end
+end
+
+local tArgs = {...}
+if #tArgs == 3 then
+	for i, num in ipairs(tArgs) do
+		if not tonumber(num) then
+			error("position "..i.." must be a valid coordinate")
+		end
+	end
+	starNav.goto(tArgs[1], tArgs[2], tArgs[3])
+else
+	error("position must be a triplet of numbers")
+end

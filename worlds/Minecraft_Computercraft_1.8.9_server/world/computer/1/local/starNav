@@ -1,0 +1,213 @@
+if not tinyMap then
+	if not os.loadAPI("tinyMap") then
+		error("could not load tinyMap API")
+	end
+end
+if not aStar then
+	if not os.loadAPI("aStar") then
+		error("could not load aStar API")
+	end
+end
+if not location then
+	if not os.loadAPI("location") then
+		error("could not load location API")
+	end
+end
+
+local position
+
+local graph = tinyMap.new("starNavMaps")
+local function distanceFunc(a, b)
+	return ((graph:get(a) or graph:get(b)) and math.huge) or aStar.distance(a, b)
+end
+
+local sensor
+local function findSensor()
+	for _, side in ipairs({"left", "right"}) do
+		if peripheral.isPresent(side) then
+			local methods = peripheral.getMethods(side)
+			for _, name in pairs(methods) do
+				if name == "sonicScan" then
+					return peripheral.wrap(side)
+				end
+			end
+		end
+	end
+end
+
+local function getHeading()
+	local i = 0
+	while turtle.detect() do
+		if i == 4 then
+			if turtle.up() then
+				i = 0
+			else
+				error("help I'm trapped in a ridiculous place")
+			end
+		else
+			turtle.turnRight()
+			i = i + 1
+		end
+	end
+	local p1 = {gps.locate()}
+	if #p1 == 3 then
+		p1 = vector.new(unpack(p1))
+	else
+		error("no gps signal - phase 1")
+	end
+	i = 0
+	while not turtle.forward() do
+		if i > 5 then error("couldn't move to determine direction") end
+		i = i + 1
+		sleep(1)
+	end
+	local p2 = {gps.locate()}
+	turtle.back()
+	if #p2 == 3 then
+		p2 = vector.new(unpack(p2))
+	else
+		error("no gps signal - phase 2")
+	end
+	local dir = p2 - p1
+	if dir.x == 1 then
+		return 3
+	elseif dir.x == -1 then
+		return 1
+	elseif dir.z == 1 then
+		return 0
+	elseif dir.z == -1 then
+		return 2
+	else
+		error("could not determine direction - phase 3")
+	end
+end
+
+local function detect(currPos, adjPos)
+	local dir = adjPos - currPos
+	if dir.y == 1 then
+		return turtle.detectUp()
+	elseif dir.y == -1 then
+		return turtle.detectDown()
+	elseif dir.x == 1 then
+		position:setHeading(3)
+		return turtle.detect()
+	elseif dir.x == -1 then
+		position:setHeading(1)
+		return turtle.detect()
+	elseif dir.z == 1 then
+		position:setHeading(0)
+		return turtle.detect()
+	elseif dir.z == -1 then
+		position:setHeading(2)
+		return turtle.detect()
+	else
+		return false
+	end
+end
+
+local function detectAll(currPos)
+	for _, pos in ipairs(aStar.adjacent(currPos)) do -- better order of checking directions
+		local detected = detect(currPos, pos)
+		local blocked = graph:get(pos)
+		if detected and not blocked then
+			graph:set(pos, 1)
+		elseif not detected and blocked then
+			graph:set(pos, nil)
+		end
+	end
+end
+
+local function scan(currPos)
+	if sensor then
+		local rawBlockInfo = sensor.sonicScan()
+		local sortedBlockInfo = aStar.newMap()
+		for _, blockInfo in ipairs(rawBlockInfo) do
+			sortedBlockInfo:set(currPos + vector.new(blockInfo.x, blockInfo.y, blockInfo.z), blockInfo)
+		end
+		local toCheckQueue = {}
+		for _, pos in ipairs(aStar.adjacent(currPos)) do
+			if sortedBlockInfo:get(pos) then
+				table.insert(toCheckQueue, pos)
+			end
+		end
+		while toCheckQueue[1] do
+			local pos = table.remove(toCheckQueue, 1)
+			local blockInfo = sortedBlockInfo:get(pos)
+			local blocked = graph:get(pos)
+			if blockInfo.type ~= "AIR" and not blocked then
+				graph:set(pos, 1)
+			elseif blockInfo.type == "AIR" then
+				for _, pos2 in ipairs(aStar.adjacent(pos)) do
+					local blockInfo2 = sortedBlockInfo:get(pos2)
+					if blockInfo2 and not blockInfo2.checked then
+						table.insert(toCheckQueue, pos2)
+					end
+				end
+				if blocked then
+					graph:set(pos, nil)
+				end
+			end
+			blockInfo.checked = true
+		end
+	else
+		detectAll(currPos)
+	end
+	graph:save()
+end
+
+local function move(currPos, adjPos)
+	if not detect(position, adjPos) then
+		local dir = adjPos - currPos
+		if dir.y == 1 then
+			return position:up()
+		elseif dir.y == -1 then
+			return position:down()
+		else
+			return position:forward()
+		end
+	else
+		return false
+	end
+end
+
+function goto(x, y, z)
+	if not position then
+		local heading = getHeading()
+		local currPos = {gps.locate()}
+		if #currPos == 3 then
+			local x, y, z = unpack(currPos)
+			position = location.new(x, y, z, heading)
+		else
+			return false, "couldn't determine location"
+		end
+	end
+	sensor = findSensor()
+	local goal = vector.new(tonumber(x), tonumber(y), tonumber(z))
+	if graph:get(goal) then return false, "goal is blocked" end
+	local path = aStar.compute(distanceFunc, position, goal)
+	if not path then
+		return false, "no known path to goal"
+	end
+	while not aStar.vectorEquals(position, goal) do
+		local movePos = table.remove(path)
+		if detect(position, movePos) then
+			scan(position)
+			if graph:get(goal) then return false, "goal is blocked" end
+			path = aStar.compute(distanceFunc, position, goal)
+			if not path then
+				return false, "no known path to goal"
+			end
+		else
+			while not move(position, movePos) do
+				sleep(1) -- better obstacle detection
+			end
+		end
+	end
+	return true
+end
+
+function getPosition()
+	if position then
+		return position:value()
+	end
+end
